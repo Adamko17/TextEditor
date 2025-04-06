@@ -1,5 +1,6 @@
 #include <termios.h>
 #include <unistd.h>
+#include <stdio.h>
 
 /*enables raw mode which turns of echoing when the user types
   does this by changing the fourth bit which corresponds to the ECHO bitflag
@@ -14,10 +15,11 @@ void enableRawMode() {
     //TCSAFLUSH - when to apply the change
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw); //apply the modified attributes to the terminal
 }
+
 int main() {
     enableRawMode();
     char c;
-
+    printf("LOL");
     //read 1 byte into var c until there are no more bytes to read or 'q' is pressed
     while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q');
     return 0;
