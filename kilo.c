@@ -20,7 +20,8 @@ void enableRawMode() {
   atexit(disableRawMode);
 
   struct termios raw = orig_termios;
-  raw.c_lflag &= ~(ECHO | ICANON); //change the ECHO and ICANON flags to 0
+  raw.c_iflag &= ~(ICRNL | IXON); //disables ctrl-s and ctrl-q
+  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); //change the ECHO, ICANON, IEXTEN(ctrl-o) flags to 0
 
   //TCSAFLUSH - when to apply the change (discards any unread input before applying the changes to the terminal)
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw); //apply the modified attributes to the terminal
@@ -32,7 +33,7 @@ int main() {
 
   //read 1 byte into var c until there are no more bytes to read or 'q' is pressed
   while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
-    //if the character is a control char (0-31), print ASCII
+    //if the character is a control char (0-31), print ASCII  
     if (iscntrl(c)) {
       printf("%d\n", c);
     } else {
