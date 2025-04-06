@@ -1,6 +1,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <stdio.h>
 
 
 struct termios orig_termios; //will hold a copy of the original state of the terminal atts
@@ -18,9 +20,9 @@ void enableRawMode() {
   atexit(disableRawMode);
 
   struct termios raw = orig_termios;
-  raw.c_lflag &= ~(ECHO); //change the fourth bit in the 'local flags' to 0 using NOT, AND.
+  raw.c_lflag &= ~(ECHO | ICANON); //change the ECHO and ICANON flags to 0
 
-  //TCSAFLUSH - when to apply the change
+  //TCSAFLUSH - when to apply the change (discards any unread input before applying the changes to the terminal)
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw); //apply the modified attributes to the terminal
 }
 
@@ -29,6 +31,13 @@ int main() {
   char c;
 
   //read 1 byte into var c until there are no more bytes to read or 'q' is pressed
-  while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q');
+  while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
+    //if the character is a control char (0-31), print ASCII
+    if (iscntrl(c)) {
+      printf("%d\n", c);
+    } else {
+      printf("%d ('%c')\n", c, c);
+    }
+  };
   return 0;
 }
