@@ -20,7 +20,9 @@ void enableRawMode() {
   atexit(disableRawMode);
 
   struct termios raw = orig_termios;
-  raw.c_iflag &= ~(ICRNL | IXON); //disables ctrl-s and ctrl-q
+  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON); //disables ctrl-s and ctrl-q
+  raw.c_oflag &= ~(OPOST); // turn off output processing like carriage return or newline 
+  raw.c_cflag |= (CS8);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); //change the ECHO, ICANON, IEXTEN(ctrl-o) flags to 0
 
   //TCSAFLUSH - when to apply the change (discards any unread input before applying the changes to the terminal)
@@ -35,9 +37,9 @@ int main() {
   while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
     //if the character is a control char (0-31), print ASCII  
     if (iscntrl(c)) {
-      printf("%d\n", c);
+      printf("%d\r\n", c);
     } else {
-      printf("%d ('%c')\n", c, c);
+      printf("%d ('%c')\r\n", c, c);
     }
   };
   return 0;
