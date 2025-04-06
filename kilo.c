@@ -24,6 +24,8 @@ void enableRawMode() {
   raw.c_oflag &= ~(OPOST); // turn off output processing like carriage return or newline 
   raw.c_cflag |= (CS8);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); //change the ECHO, ICANON, IEXTEN(ctrl-o) flags to 0
+  raw.c_cc[VMIN] = 0; //min number of bytes of input before read() can return
+  raw.c_cc[VTIME] = 1; // max amount of time to wait before read() returns - 1/10 of a second
 
   //TCSAFLUSH - when to apply the change (discards any unread input before applying the changes to the terminal)
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw); //apply the modified attributes to the terminal
@@ -31,16 +33,17 @@ void enableRawMode() {
 
 int main() {
   enableRawMode();
-  char c;
-
-  //read 1 byte into var c until there are no more bytes to read or 'q' is pressed
-  while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
-    //if the character is a control char (0-31), print ASCII  
+  
+  while(1) {
+    char c = '\0';
+    read(STDIN_FILENO, &c, 1);
     if (iscntrl(c)) {
       printf("%d\r\n", c);
     } else {
       printf("%d ('%c')\r\n", c, c);
     }
-  };
+    if (c == 'q') break;
+  }
+
   return 0;
 }
