@@ -1,3 +1,5 @@
+/*** includes ***/
+
 #include <termios.h>
 #include <errno.h>
 #include <unistd.h>
@@ -5,10 +7,14 @@
 #include <ctype.h>
 #include <stdio.h>
 
+/*** data ***/
 
 struct termios orig_termios; //will hold a copy of the original state of the terminal atts
 
-/*prints an error massage and exits the program*/
+/*** terminal ***/
+
+/*prints an error massage and exits the program
+  will be used as error handling*/
 void die(const char *s) {
   perror(s); //prints the right error according to the global errno variable
   exit(1); //indicates failure
@@ -38,6 +44,8 @@ void enableRawMode() {
   //TCSAFLUSH - when to apply the change (discards any unread input before applying the changes to the terminal)
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("setattr"); //apply the modified attributes to the terminal
 }
+
+/*** init ***/
 
 int main() {
   enableRawMode();
