@@ -20,6 +20,9 @@ struct termios orig_termios; //will hold a copy of the original state of the ter
 /*prints an error massage and exits the program
   will be used as error handling*/
 void die(const char *s) {
+  write(STDOUT_FILENO, "\x1b[2J", 4); //clears the entire screen
+  write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
+
   perror(s); //prints the right error according to the global errno variable
   exit(1); //indicates failure
 }
@@ -53,23 +56,35 @@ void enableRawMode() {
 char editorReadKey() {
   int nread;
   char c;
-  while ((nread == read(STDIN_FILENO, &c, 1)) != 1) {
+  while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
     if (nread == -1 && errno != EAGAIN) die("read");
   }
   return c;
 }
 
+/*** output ***/
+
+/*clear screen
+  \1xb - esc
+  [ - start of esc sequence which instructs the terminal to do various text formatting tasks*/
+void editorRefreshScreen() {
+  write(STDOUT_FILENO, "\x1b[2J", 4); //clears the entire screen
+  write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
+}
+
+
 /*** input ***/
 
 /*handles the key press*/
-void editorProccessKeyPress() {
+void editorProcessKeypress() {
   char c = editorReadKey();
 
-  switch (c)
-  {
-  case CTRL_KEY('q'):
-    exit(0);
-    break;
+  switch (c) {
+    case CTRL_KEY('q'):
+      write(STDOUT_FILENO, "\x1b[2J", 4);
+      write(STDOUT_FILENO, "\x1b[H", 3);
+      exit(0);
+      break;
   }
 }
 /*** init ***/
@@ -78,7 +93,8 @@ int main() {
   enableRawMode();
 
   while(1) {
-    editorProccessKeyPress();
+    editorRefreshScreen();
+    editorProcessKeypress();
   }
 
   return 0;
