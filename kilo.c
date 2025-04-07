@@ -64,12 +64,23 @@ char editorReadKey() {
 
 /*** output ***/
 
+void editorDrawRows() {
+  int y;
+  for (y = 0; y < 24; y++) {
+    write(STDOUT_FILENO, "~\r\n", 3);
+
+  }
+}
+
 /*clear screen
   \1xb - esc
   [ - start of esc sequence which instructs the terminal to do various text formatting tasks*/
 void editorRefreshScreen() {
   write(STDOUT_FILENO, "\x1b[2J", 4); //clears the entire screen
   write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
+
+  editorDrawRows();
+  write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
 
