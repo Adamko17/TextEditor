@@ -18,7 +18,7 @@ struct editorConfig {
   int screenrows;
   int screencols;
   struct termios orig_termios; //will hold a copy of the original state of the terminal atts
-} ;
+};
 
 struct editorConfig E;
 
@@ -69,14 +69,33 @@ char editorReadKey() {
   return c;
 }
 
+/*gets cursor position and storest the row and col values*/
+int getCursorPosition(int *rows, int *cols) {
+  char buf[32]; //stores the response from the terminal
+  unsigned int i = 0;
+
+  if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) return -1;
+
+  while (i < sizeof(buf) - 1) {
+    if (read(STDIN_FILENO, &buf[i], 1) != 1) break;
+    if (buf[i] == 'R') break;
+    i++;
+  }
+  buf[i] = '\0';
+
+  if (buf[0] != '\x1b' || buf[1] != '[') return -1;
+  if (sscanf(&buf[2], "%d;%d", rows, cols) != 2) return -1;
+
+  return 0;
+}
+
 /* places the number of cols and rows into the pointer vals*/
 int getWindowSize(int *rows, int *cols) {
   struct winsize ws;
 
-  if (1 || ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-    if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) return -1;
-    editorReadKey();
-    return -1; //indicating failure
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+    if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) return -1; //C command - cursor forward, B command - cursor down ->the cursor reaches the right and bottom edges of the screen
+    return getCursorPosition(rows, cols);
   } else {
     *cols = ws.ws_col;
     *rows = ws.ws_row;
@@ -90,7 +109,6 @@ void editorDrawRows() {
   int y;
   for (y = 0; y < E.screenrows; y++) {
     write(STDOUT_FILENO, "~\r\n", 3);
-
   }
 }
 
@@ -102,7 +120,7 @@ void editorRefreshScreen() {
   write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
 
   editorDrawRows();
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
 }
 
 
@@ -129,6 +147,7 @@ void initEditor() {
 
 int main() {
   enableRawMode();
+  initEditor();
 
   while(1) {
     editorRefreshScreen();
