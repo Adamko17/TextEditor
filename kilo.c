@@ -133,13 +133,13 @@ void abFree(struct abuf *ab) {
 
 /*** output ***/
 
-void editorDrawRows() {
+void editorDrawRows(struct abuf *ab) {
   int y;
   for (y = 0; y < E.screenrows; y++) {
-    write(STDOUT_FILENO, "~", 3);
+    abAppend(ab, "~", 1);
 
     if (y < E.screenrows -1) {
-      write(STDOUT_FILENO, "\r\n", 2);
+      abAppend(ab, "\r\n", 2);
     }
   }
 }
@@ -148,11 +148,17 @@ void editorDrawRows() {
   \1xb - esc
   [ - start of esc sequence which instructs the terminal to do various text formatting tasks*/
 void editorRefreshScreen() {
-  write(STDOUT_FILENO, "\x1b[2J", 4); //clears the entire screen
-  write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
+  struct abuf ab = ABUF_INIT;
 
-  editorDrawRows();
+  abAppend(&ab,"\x1b[2J", 4); //clears the entire screen
+  abAppend(&ab, "\x1b[H", 3); //position the cursor 
+
+  editorDrawRows(&ab);
+
+  abAppend(&ab,"\x1b[2J", 4);
+
   write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
+  abFree(&ab);
 }
 
 
