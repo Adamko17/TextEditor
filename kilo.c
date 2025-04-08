@@ -157,7 +157,7 @@ void editorRefreshScreen() {
 
   abAppend(&ab,"\x1b[2J", 4);
 
-  write(STDOUT_FILENO, "\x1b[H", 3); //position the cursor 
+  write(STDOUT_FILENO, ab.b, ab.len); //write the buffers content 
   abFree(&ab);
 }
 
