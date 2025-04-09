@@ -192,6 +192,25 @@ void editorRefreshScreen() {
 
 /*** input ***/
 
+/*move cursor around with WASD*/
+void editorMoveCursor(char key) {
+  switch (key)
+  {
+  case 'a':
+    E.cx--;
+    break;
+  case 'd':
+    E.cx++;
+    break;
+  case 'w':
+    E.cy--;
+    break;
+  case 's':
+    E.cy++;
+    break;
+  }
+}
+
 /*handles the key press*/
 void editorProcessKeypress() {
   char c = editorReadKey();
@@ -201,6 +220,13 @@ void editorProcessKeypress() {
       write(STDOUT_FILENO, "\x1b[2J", 4);
       write(STDOUT_FILENO, "\x1b[H", 3);
       exit(0);
+      break;
+
+    case 'w':
+    case 's':
+    case 'd':
+    case 'a':
+      editorMoveCursor(c);
       break;
   }
 }
