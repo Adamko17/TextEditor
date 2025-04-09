@@ -21,6 +21,7 @@ ANSI Escape - פקודות למסוף
 /*** data ***/
 
 struct editorConfig {
+  int cx, cy;
   int screenrows;
   int screencols;
   struct termios orig_termios; //will hold a copy of the original state of the terminal atts
@@ -178,7 +179,10 @@ void editorRefreshScreen() {
 
   editorDrawRows(&ab);
 
-  abAppend(&ab,"\x1b[2J", 4);
+  char buf[32];
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy + 1, E.cx + 1);
+  abAppend(&ab, buf, strlen(buf));
+
   abAppend(&ab, "\x1b[?25h", 6); //show cursor
 
   write(STDOUT_FILENO, ab.b, ab.len); //write the buffers content 
@@ -204,6 +208,8 @@ void editorProcessKeypress() {
 
 /* initialize all the fields in the E struct*/
 void initEditor() {
+  E.cx = 0;
+  E.cy = 0;
   if (getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
 }
 
